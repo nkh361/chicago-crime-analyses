@@ -2,14 +2,13 @@ import pandas as pd
 import numpy as np
 from sodapy import Socrata
 import datetime
+import sqlite3
+from os import path
 
 def dataframe(datalink):
-    # user_destination_block = input("Enter destination block: ")
-    # user_destination_time = input("Enter time that you will arrive: ")
-
     client = Socrata(datalink, None)
     # first 100 results in json
-    results = client.get("x2n5-8w5q", limit = 200000)
+    results = client.get("x2n5-8w5q", limit = 1000000)
     results_df = pd.DataFrame.from_records(results)
 
     time_stamps = []
@@ -35,7 +34,30 @@ def dataframe(datalink):
     # ^ garbage api, these are not 'zipcodes' and there is no documentation for what these numbers mean. ~press shame button~
     return results_df
 
+def database():
+    if path.exists('chicago_crime.db') == False:
+        conn = sqlite3.connect('chicago_crime.db')
+        dataframe("data.cityofchicago.org").to_sql('chicago_crime_table', conn, if_exists = 'replace')
+        sqlQuery()
+    else:
+        sqlQuery()
+
+def sqlQuery():
+    conn = sqlite3.connect('chicago_crime.db')
+    cur = conn.cursor()
+
+    user_destination_block = input("Enter destination block: ")
+    # user_destination_time = input("Enter time that you will arrive: ")
+
+    sql_user_block = "SELECT * FROM chicago_crime_table WHERE block LIKE '%{}%'".format(user_destination_block)
+
+    cur.execute(sql_user_block)
+    block_result = cur.fetchall()
+    for x in block_result:
+        print(x)
+    
 def main():
-    api_link = "data.cityofchicago.org"
-    print(dataframe(api_link))
+    # api_link = "data.cityofchicago.org"
+    # print(dataframe(api_link))
+    database()
 main()
