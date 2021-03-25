@@ -46,8 +46,10 @@ def createDatabase():
   dataframe = createDataframe('data.cityofchicago.org')
   if path.exists('chicago_crime.db') == False:
     conn = sqlite3.connect('chicago_crime.db')
-    dataframe.to_sql('chicago_crime_table', conn, if exists = 'repl')
+    dataframe.to_sql('chicago_crime_table', conn, if_exists = 'replace')
   else:
     pass
+
+createDatabase()
 
 
